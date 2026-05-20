@@ -80,7 +80,6 @@ def search_gene(symbol):
     return response.json()
 
 
-
 # Home Page
 
 if st.session_state.page == "home":
