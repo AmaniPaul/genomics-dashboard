@@ -2,9 +2,23 @@ import requests
 import streamlit as st
 import pandas as pd
 
-NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+# Session State Initialization
+if "page" not in st.session_state:
+    st.session_state.page = "home"
+
+if "variants_df" not in st.session_state:
+    st.session_state.variants_df = None
+
+if "gene_symbol" not in st.session_state:
+    st.session_state.gene_symbol = ""
+
+if "selected_variant" not in st.session_state:
+    st.session_state.selected_variant = None
+
 
 def search_clinvar_by_gene (gene_symbol, max_results=20):
+    NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+
     search_url = f"{NCBI_BASE}/esearch.fcgi"
 
     search_params = {
@@ -15,6 +29,7 @@ def search_clinvar_by_gene (gene_symbol, max_results=20):
     }
 
     search_response = requests.get(search_url, params=search_params)
+
     search_response.raise_for_status()
 
     ids = search_response.json()["esearchresult"]["idlist"]
@@ -52,13 +67,6 @@ def search_clinvar_by_gene (gene_symbol, max_results=20):
     return pd.DataFrame(rows)
 
 
-st.set_page_config(page_title="Genomics Dashboard", layout="wide")
-
-st.title("AI-Powered Genomics Dashboard")
-st.write("Search for a human gene to view basic genomic information.")
-
-gene_symbol = st.text_input("Enter a gene symbol", placeholder="Example: BRCA1")
-
 def search_gene(symbol):
     url = f"https://rest.ensembl.org/lookup/symbol/homo_sapiens/{symbol}"
     headers = {"Content-Type": "application/json"}
@@ -71,46 +79,105 @@ def search_gene(symbol):
     response.raise_for_status()
     return response.json()
 
-if st.button("Search"):
-    if not gene_symbol:
-        st.warning("Please enter a gene symbol.")
-    else:
-        with st.spinner("Searching Ensembl..."):
-            gene = search_gene(gene_symbol.upper())
 
-        if gene is None:
-            st.error("Gene not found. Try another symbol.")
-        else:
-            st.subheader(gene.get("display_name", gene_symbol.upper()))
 
-            col1, col2, col3 = st.columns(3)
+# Home Page
 
-            col1.metric("Chromosome", gene.get("seq_region_name", "N/A"))
-            col2.metric("Start", gene.get("start", "N/A"))
-            col3.metric("End", gene.get("end", "N/A"))
+if st.session_state.page == "home":
 
-            st.write("**Ensembl ID:**", gene.get("id", "N/A"))
-            st.write("**Biotype:**", gene.get("biotype", "N/A"))
-            st.write("**Strand:**", gene.get("strand", "N/A"))
+    st.title("AI-Powered Genomics Dashboard")
 
-            with st.expander("Raw API response"):
-                st.json(gene)
+    gene_symbol = st.text_input(
+        "Enter a gene symbol",
+        placeholder="BRCA1"
+    )
 
-    variants_df = search_clinvar_by_gene(gene_symbol.upper())
+    if st.button("Search"):
 
-    st.subheader("ClinVar Variants")
+        st.session_state.gene_symbol = gene_symbol.upper()
 
-    if variants_df.empty:
-        st.info("No ClinVar variants found for this gene.")
-    else:
-        st.dataframe(variants_df, use_container_width=True)
+        st.session_state.variants_df = search_clinvar_by_gene(
+            gene_symbol.upper()
+        )
 
-if st.button("View Variants"):
-    gene = search_gene(gene_symbol.upper())
+        st.session_state.page = "variants"
 
-    st.subheader("Variant Information")
+        st.rerun()
 
-    st.write("**Variant:**", )
-    st.write("**Gene:**", gene.get(gene_symbol.upper()))
-    st.write("**Chromosome:**", gene.get("seq_region_name", "N/A"))
-    st.write("**Position:**", )
+# Variant Page
+
+elif st.session_state.page == "variants":
+
+    st.title(
+        f"Variants for {st.session_state.gene_symbol}"
+    )
+
+    variants_df = st.session_state.variants_df
+
+    st.dataframe(variants_df)
+
+    selected_title = st.selectbox(
+        "Choose a variant",
+        variants_df["Title"],
+        key="variant_dropdown"
+    )
+
+    selected_variant = variants_df[
+        variants_df["Title"] == selected_title
+    ].iloc[0]
+
+    st.subheader("Variant Summary")
+
+    st.write("**Title:**", selected_variant["Title"])
+    st.write(
+        "**Clinical Significance:**",
+        selected_variant["Clinical Significance"]
+    )
+
+    if st.button("Back to Search"):
+
+        st.session_state.page = "home"
+
+        st.rerun()
+
+    st.subheader("Variant Summary")
+
+    
+
+    selected_variant = variants_df[
+        variants_df["Title"] == selected_title
+    ].iloc[0]
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.write("**ClinVar ID:**", selected_variant["ClinVar ID"])
+        st.write("**Clinical Significance:**", selected_variant["Clinical Significance"])
+        st.write("**Review Status:**", selected_variant["Review Status"])
+
+    with col2:
+        st.write("**Variation Type:**", selected_variant["Variation Type"])
+        st.write("**Last Updated:**", selected_variant["Last Updated"])
+
+    st.write("**Variant Title:**")
+    st.write(selected_variant["Title"])
+
+    st.subheader("Plain-English Explanation")
+
+    explanation = f"""
+    This variant is currently classified as **{selected_variant['Clinical Significance']}**
+    in ClinVar.
+
+    Its review status is **{selected_variant['Review Status']}**, which gives a rough sense
+    of how much evidence supports this classification.
+
+    This is not medical advice. It is a summary of public ClinVar data.
+    """
+
+    st.info(explanation)
+
+    st.subheader("Clinical Significance Breakdown")
+
+    chart_data = variants_df["Clinical Significance"].value_counts()
+
+    st.bar_chart(chart_data)
