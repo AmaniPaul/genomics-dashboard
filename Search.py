@@ -181,3 +181,13 @@ elif st.session_state.page == "variants":
     chart_data = variants_df["Clinical Significance"].value_counts()
 
     st.bar_chart(chart_data)
+
+
+st.session_state.selected_variant = selected_variant
+
+selected_variant = variants_df[
+    variants_df["Title"] == selected_title
+].iloc[0]
+
+if st.button("View Clinical Evidence"):
+    st.switch_page("pages/Clinical Evidence.py")

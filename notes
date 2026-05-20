@@ -1,0 +1,235 @@
+# =========================================================
+# AI-POWERED GENOMICS DASHBOARD
+# =========================================================
+#
+# PROJECT OVERVIEW
+# ---------------------------------------------------------
+# This application allows users to:
+#
+# 1. Search for a human gene
+# 2. Retrieve genomic data from Ensembl
+# 3. Retrieve clinical variant data from ClinVar
+# 4. Explore pathogenic/benign variants
+# 5. View clinical evidence summaries
+#
+# This project combines:
+# - Bioinformatics
+# - API integration
+# - Data visualization
+# - Full-stack application structure
+# - Clinical genomics concepts
+#
+# =========================================================
+# STREAMLIT ARCHITECTURE NOTES
+# =========================================================
+#
+# IMPORTANT:
+# Streamlit reruns the ENTIRE script whenever:
+# - a button is clicked
+# - a dropdown changes
+# - text input changes
+#
+# Because of this, we use:
+#
+# st.session_state
+#
+# to preserve data between reruns.
+#
+# Example:
+#
+# st.session_state.page
+#
+# stores which "page" the user is currently on.
+#
+# =========================================================
+# SESSION STATE VARIABLES
+# =========================================================
+#
+# page
+# ----
+# Tracks which page the user is viewing.
+#
+# Example:
+# "home"
+# "variants"
+#
+#
+# gene_symbol
+# -----------
+# Stores the currently searched gene.
+#
+#
+# variants_df
+# -----------
+# Stores the ClinVar dataframe returned from the API.
+#
+#
+# selected_variant
+# ----------------
+# Stores the currently selected variant so it can
+# be accessed across pages.
+#
+# =========================================================
+# ENSEMBL API NOTES
+# =========================================================
+#
+# Ensembl provides genomic annotation data.
+#
+# Endpoint used:
+#
+# /lookup/symbol/homo_sapiens/{gene}
+#
+# Example:
+# BRCA1
+# TP53
+#
+# Returns:
+# - chromosome
+# - start/end positions
+# - Ensembl gene ID
+# - gene biotype
+#
+# Documentation:
+# https://rest.ensembl.org
+#
+# =========================================================
+# CLINVAR API NOTES
+# =========================================================
+#
+# ClinVar contains:
+# - disease-associated variants
+# - pathogenicity classifications
+# - clinical review evidence
+#
+# We use NCBI E-utilities:
+#
+# 1. esearch
+#    -> search for ClinVar IDs
+#
+# 2. esummary
+#    -> retrieve metadata for those IDs
+#
+# Example classifications:
+# - Pathogenic
+# - Likely pathogenic
+# - Benign
+# - Uncertain significance
+#
+# Documentation:
+# https://www.ncbi.nlm.nih.gov/clinvar/
+#
+# =========================================================
+# BIOINFORMATICS NOTES
+# =========================================================
+#
+# GENE
+# ----
+# A region of DNA encoding biological function.
+#
+#
+# VARIANT
+# -------
+# A change in DNA sequence.
+#
+#
+# CLINICAL SIGNIFICANCE
+# ---------------------
+# Measures how strongly a variant is associated
+# with disease.
+#
+#
+# REVIEW STATUS
+# -------------
+# Indicates confidence/evidence level for
+# a clinical interpretation.
+#
+#
+# PATHOGENIC
+# ----------
+# Variant likely contributes to disease.
+#
+#
+# BENIGN
+# ------
+# Variant unlikely to contribute to disease.
+#
+#
+# VUS
+# ---
+# Variant of Uncertain Significance.
+#
+# =========================================================
+# DATAFLOW OF THE APP
+# =========================================================
+#
+# User enters gene
+#        ↓
+# Ensembl API called
+#        ↓
+# ClinVar API called
+#        ↓
+# Variants loaded into dataframe
+#        ↓
+# User selects variant
+#        ↓
+# Clinical evidence displayed
+#
+# =========================================================
+# FUTURE FEATURES
+# =========================================================
+#
+# - PubMed literature integration
+# - AI-generated explanations
+# - Protein structure visualization
+# - Mutation heatmaps
+# - Disease association scoring
+# - Patient-friendly reports
+# - Variant filtering
+# - Authentication/database storage
+#
+# =========================================================
+# IMPORTANT SOFTWARE ENGINEERING NOTES
+# =========================================================
+#
+# Separation of Concerns
+# ----------------------
+# API logic should eventually move into:
+#
+# services/
+#
+# Visualization logic into:
+#
+# utils/
+#
+# UI logic remains inside Streamlit pages.
+#
+#
+# Clean Architecture Goal
+# -----------------------
+#
+# app.py
+#     UI + routing
+#
+# services/
+#     API/data logic
+#
+# pages/
+#     multipage views
+#
+# utils/
+#     helper functions + visualizations
+#
+# =========================================================
+# SCIENTIFIC DISCLAIMER
+# =========================================================
+#
+# This application is educational only.
+#
+# It should NOT be used:
+# - for diagnosis
+# - for treatment decisions
+# - as medical advice
+#
+# Clinical genomics requires expert interpretation.
+#
+# =========================================================
