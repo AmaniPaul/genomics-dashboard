@@ -88,20 +88,21 @@ if st.session_state.page == "home":
 
     gene_symbol = st.text_input(
         "Enter a gene symbol",
+        value = st.session_state.gene_symbol,
         placeholder="BRCA1"
     )
 
     if st.button("Search"):
 
-        st.session_state.gene_symbol = gene_symbol.upper()
+        if not gene_symbol.strip():
+            st.warning("Please enter a gene symbol.")
+        else:
+            st.session_state.gene_symbol = gene_symbol.upper()
+            st.session_state.variants_df = search_clinvar_by_gene(gene_symbol.upper())
+            st.session_state.page = "variants"
+            st.rerun()
+    
 
-        st.session_state.variants_df = search_clinvar_by_gene(
-            gene_symbol.upper()
-        )
-
-        st.session_state.page = "variants"
-
-        st.rerun()
 
 # Variant Page
 
@@ -111,19 +112,46 @@ elif st.session_state.page == "variants":
         f"Variants for {st.session_state.gene_symbol}"
     )
 
+    if st.button("Back to Search"):
+        st.session_state.page = "home"
+        st.session_state.gene_symbol = ""
+        st.session_state.variants_df = None
+        st.session_state.selected_variant = None
+
+        if "variant_dropdown" in st.session_state:
+            del st.session_state["variant_dropdown"]
+
+        st.rerun()
+
     variants_df = st.session_state.variants_df
 
-    st.dataframe(variants_df)
+    st.subheader("Filter Variants")
+
+    significance_options = variants_df["Clinical Significance"].dropna().unique()
+
+    selected_significance = st.multiselect(
+        "Clinical significance",
+        significance_options,
+        default=significance_options
+    )
+
+    filtered_df = variants_df[
+        variants_df["Clinical Significance"].isin(selected_significance)
+    ]
+
+    st.dataframe(filtered_df, use_container_width=True)
 
     selected_title = st.selectbox(
         "Choose a variant",
-        variants_df["Title"],
+        filtered_df["Title"],
         key="variant_dropdown"
     )
 
     selected_variant = variants_df[
         variants_df["Title"] == selected_title
     ].iloc[0]
+
+    st.session_state.selected_variant = selected_variant
 
     st.subheader("Variant Summary")
 
@@ -133,15 +161,6 @@ elif st.session_state.page == "variants":
         selected_variant["Clinical Significance"]
     )
 
-    if st.button("Back to Search"):
-
-        st.session_state.page = "home"
-
-        st.rerun()
-
-    st.subheader("Variant Summary")
-
-    
 
     selected_variant = variants_df[
         variants_df["Title"] == selected_title
@@ -175,18 +194,58 @@ elif st.session_state.page == "variants":
 
     st.info(explanation)
 
+    report_text = f"""
+        AI-Powered Genomics Dashboard Report
+
+        Gene: {st.session_state.gene_symbol}
+
+        Variant Title:
+        {selected_variant["Title"]}
+
+        ClinVar ID:
+        {selected_variant["ClinVar ID"]}
+
+        Clinical Significance:
+        {selected_variant["Clinical Significance"]}
+
+        Review Status:
+        {selected_variant["Review Status"]}
+
+        Variation Type:
+        {selected_variant["Variation Type"]}
+
+        Last Updated:
+        {selected_variant["Last Updated"]}
+
+        Plain-English Explanation:
+        This variant is currently classified as {selected_variant["Clinical Significance"]} in ClinVar.
+        Its review status is {selected_variant["Review Status"]}.
+
+        Disclaimer:
+        This report is for educational purposes only and is not medical advice.
+        """
+    
+    st.download_button(
+        label="Download Variant Report",
+        data = report_text,
+        file_name = f"{st.session_state.gene_symbol}_variant_report.txt",
+        mime = "text/plain"
+    )
+
     st.subheader("Clinical Significance Breakdown")
 
-    chart_data = variants_df["Clinical Significance"].value_counts()
+    chart_data = filtered_df["Clinical Significance"].value_counts()
 
     st.bar_chart(chart_data)
 
 
-st.session_state.selected_variant = selected_variant
+    selected_variant = filtered_df[
+        filtered_df["Title"] == selected_title
+    ].iloc[0]
 
-selected_variant = variants_df[
-    variants_df["Title"] == selected_title
-].iloc[0]
 
-if st.button("View Clinical Evidence"):
-    st.switch_page("pages/Clinical Evidence.py")
+    if st.button("View Clinical Evidence"):
+        st.switch_page("pages/Clinical Evidence.py")
+
+    if st.button("View Visualizations"):
+        st.switch_page("pages/Visualizations.py")
