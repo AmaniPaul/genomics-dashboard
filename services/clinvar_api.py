@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import streamlit as st
 
+@st.cache_data
 def search_clinvar_by_gene (gene_symbol, max_results=20):
     NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 

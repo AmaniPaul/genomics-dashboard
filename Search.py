@@ -37,7 +37,8 @@ if st.session_state.page == "home":
         else:
             st.session_state.gene_symbol = gene_symbol.upper()
             try:
-                st.session_state.variants_df = search_clinvar_by_gene(gene_symbol.upper())
+                with st.spinner("Fetching ClinVar variants..."):
+                    st.session_state.variants_df = search_clinvar_by_gene(gene_symbol.upper())
             except Exception as e:
                 st.error("Could not fetch ClinVar data. Please try again.")
             st.session_state.page = "variants"
