@@ -1,3 +1,5 @@
+import requests
+
 def search_gene(symbol):
     url = f"https://rest.ensembl.org/lookup/symbol/homo_sapiens/{symbol}"
     headers = {"Content-Type": "application/json"}

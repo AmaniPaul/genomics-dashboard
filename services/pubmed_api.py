@@ -1,3 +1,5 @@
+import requests
+
 def search_pubmed(query, max_results=5):
     NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 

@@ -1,3 +1,6 @@
+import requests
+import pandas as pd
+
 def search_clinvar_by_gene (gene_symbol, max_results=20):
     NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 
