@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import streamlit as st
 
 def search_clinvar_by_gene (gene_symbol, max_results=20):
     NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -13,9 +14,12 @@ def search_clinvar_by_gene (gene_symbol, max_results=20):
         "retmax": max_results
     }
 
-    search_response = requests.get(search_url, params=search_params)
-
-    search_response.raise_for_status()
+    try:
+        search_response = requests.get(search_url, params=search_params)
+        search_response.raise_for_status()
+    except requests.exceptions.RequestException:
+        st.error("Could not connect to ClinVar API.")
+        return None
 
     ids = search_response.json()["esearchresult"]["idlist"]
 

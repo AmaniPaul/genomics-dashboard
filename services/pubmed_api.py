@@ -1,4 +1,5 @@
 import requests
+import streamlit as st
 
 def search_pubmed(query, max_results=5):
     NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -13,9 +14,12 @@ def search_pubmed(query, max_results=5):
         "sort": "relevance"
     }
 
-    search_response = requests.get(search_url, params=search_params)
-
-    search_response.raise_for_status()
+    try:
+        search_response = requests.get(search_url, params=search_params)
+        search_response.raise_for_status()
+    except requests.exceptions.RequestException:
+        st.error("Could not connect to PubMed API.")
+        return None
 
     ids = search_response.json()["esearchresult"]["idlist"]
 
