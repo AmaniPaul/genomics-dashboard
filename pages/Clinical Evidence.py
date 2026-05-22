@@ -36,7 +36,7 @@ def generate_variant_explanation(variant, style):
 
 st.title("Clinical Evidence")
 
-if "selected_variant" not in st.session_state:
+if "selected_variant" not in st.session_state or st.session_state.selected_variant is None:
     st.error("No variant selected.")
     st.stop()
 

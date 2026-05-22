@@ -35,14 +35,22 @@ if st.session_state.page == "home":
         if not gene_symbol.strip():
             st.warning("Please enter a gene symbol.")
         else:
-            st.session_state.gene_symbol = gene_symbol.upper()
             try:
                 with st.spinner("Fetching ClinVar variants..."):
-                    st.session_state.variants_df = search_clinvar_by_gene(gene_symbol.upper())
+                    st.session_state.gene_symbol = gene_symbol.upper()
+                    st.session_state.variants_df = search_clinvar_by_gene(
+                        gene_symbol.upper()
+                    )
+
+                if st.session_state.variants_df.empty:
+                    st.warning("No ClinVar variants found for this gene.")
+                    st.session_state.page = "home"
+                else:
+                    st.session_state.page = "variants"
+                    st.rerun()
+
             except Exception as e:
                 st.error("Could not fetch ClinVar data. Please try again.")
-            st.session_state.page = "variants"
-            st.rerun()
     
 
 
@@ -67,12 +75,9 @@ elif st.session_state.page == "variants":
 
     variants_df = st.session_state.variants_df
 
-    if variants_df.empty:
-        st.warning("No ClinVar variants found for this gene.")
-        st.stop()
-
-    if st.session_state.variants_df is None:
-        st.error("Invalid gene symbol.")
+    if variants_df is None or variants_df.empty:
+        st.warning("No variant data available. Please search for another gene.")
+        st.session_state.page = "home"
         st.stop()
 
     st.subheader("Filter Variants")
