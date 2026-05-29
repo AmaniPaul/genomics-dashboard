@@ -145,7 +145,7 @@ genomics-dashboard/
 ## Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/AmaniPaul/genomics-dashboard>
 cd genomics-dashboard
 ```
 

@@ -42,7 +42,7 @@ if st.session_state.page == "home":
                         gene_symbol.upper()
                     )
 
-                if st.session_state.variants_df.empty:
+                if st.session_state.variants_df is None or st.session_state.variants_df.empty:
                     st.warning("No ClinVar variants found for this gene.")
                     st.session_state.page = "home"
                 else:
