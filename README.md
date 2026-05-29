@@ -15,6 +15,20 @@ This project combines:
 The goal of the project is to demonstrate how software engineering and biotechnology can work together to make genomic information more accessible and understandable.
 
 ---
+## Screenshots
+
+### Search Page
+![Search Page](images/search_page.png)
+
+### Variant Summary
+![Variant Summary](images/variant_summary.png)
+
+### Clinical Evidence
+![Clinical Evidence](images/clinical_evidence.png)
+
+### Visualizations
+![Visualizations](images/visualizations.png)
+---
 
 # Features
 
